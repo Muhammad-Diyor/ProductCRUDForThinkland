@@ -6,5 +6,5 @@ public class CreateProduct
     public string Description { get; set; }
     public uint Quantity { get; set; }
     public decimal Price { get; set; }
-    public IFormFile Photo { get; set; }
+    public IFormFile Image { get; set; }
 }
