@@ -18,6 +18,9 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddProduct([FromForm] CreateProduct dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest("Model is not valid");
+
         var result = await productService.AddProduct(dto);
 
         return Ok(result);
