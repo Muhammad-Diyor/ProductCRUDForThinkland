@@ -1,4 +1,7 @@
 using API.Data;
+using API.Models.Entities;
+using API.Repositories;
+using API.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using TelegramSink;
@@ -10,6 +13,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL"));
 });
+
+builder.Services.AddScoped<IGenericRepository<Product>, GenericRepository<Product>>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
