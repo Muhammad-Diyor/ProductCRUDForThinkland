@@ -2,6 +2,7 @@
 using API.Models.DTOs;
 using API.Models.Entities;
 using API.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace API.Services;
@@ -17,7 +18,7 @@ public class ProductService : IProductService
         this.productRepository = productRepository;
     }
 
-    public async Task<Result<Product>> AddProduct(CreateProduct dto)
+    public async Task<Result<Product>> AddProductAsync(CreateProduct dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
             return new("Product name is not valid");
@@ -56,10 +57,96 @@ public class ProductService : IProductService
         }
     }
 
+    public async Task<Result<List<Product>>> GetAllQuestionsAsync()
+    {
+        try
+        {
+            var products = await productRepository.GetAll().ToListAsync();
+
+            return new (true) { Data = products };
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Error in getting all products \nException: {e} \nInnerException: {e.InnerException}");
+            throw new("Couldn't get all products, contact support.", e);
+        }
+    }
+
+    public Result<Product> GetById(Guid id)
+    {
+        try
+        {
+            var existingProduct = productRepository.GetById(id);
+
+            if (existingProduct is null)
+                return new("Product with given Id Not Found.");
+
+            return new(true) { Data = existingProduct };
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Error in getting a product with given id: {id} \nException: {e} \nInnerException: {e.InnerException}");
+            throw new($"Couldn't get product by id: {id}, contact support.", e);
+        }
+    }
+
+    public async Task<Result<Product>> UpdateProductAsync(Guid id, UpdateProduct dto)
+    {
+        var product = productRepository.GetById(id);
+        if (product == null)    
+            return new("Product not found");
+
+        try
+        {
+            if(dto.Name != null) 
+                product.Name = dto.Name;
+
+            if(dto.Description != null) 
+                product.Description = dto.Description;
+
+            if (dto.Price != null) 
+                product.Price = dto.Price.Value;
+
+            if (dto.Quantity != null)
+                product.Quantity = dto.Quantity.Value;
+
+            if (dto.Image != null)
+                product.ImageUrl = UploadImage(dto.Image);
+
+            return new(true) { Data = await productRepository.UpdateAsync(product) };
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Error in updating a product with given id: {id} \nException: {e} \nInnerException: {e.InnerException}");
+            throw new($"Couldn't update the product with given id: {id}, contact support.", e);
+        }
+    }
+
+    public async Task<Result<Product>> DeleteByIdAsync(Guid id)
+    {
+        try
+        {
+            var existingProduct = productRepository.GetById(id);
+
+            if (existingProduct == null)
+                return new("Couldn't find the product with give Id ");
+
+            var removedProduct = await productRepository.RemoveAsync(existingProduct);
+
+            return new(true) { Data = removedProduct };
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Error in deleting a product with given id: {id} \nException: {e} \nInnerException: {e.InnerException}");
+            throw new($"Couldn't delete the product with given id: {id}, contact support.", e);
+        }
+    }
+
+
     private string UploadImage(IFormFile file)
     {
         string contentType = file.ContentType;
-        string fileName = file.FileName;
+        string fileName = Guid.NewGuid() + "_" + file.FileName;
 
         if (contentType != "image/jpeg" && contentType != "image/png")
             return "Error: Image type is not valid";

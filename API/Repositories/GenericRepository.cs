@@ -26,7 +26,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     public IQueryable<TEntity> GetAll()
         => _context.Set<TEntity>();
 
-    public TEntity? GetById(ulong id)
+    public TEntity? GetById(Guid id)
         => _context.Set<TEntity>().Find(id);
 
     public async ValueTask<TEntity> RemoveAsync(TEntity entity)

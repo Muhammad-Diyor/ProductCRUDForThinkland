@@ -4,7 +4,7 @@ namespace API.Repositories;
 
 public interface IGenericRepository<TEntity> where TEntity : class
 {
-    TEntity? GetById(ulong id);
+    TEntity? GetById(Guid id);
     IQueryable<TEntity> GetAll();
     IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> expression);
     ValueTask<TEntity> AddAsync(TEntity entity);
